@@ -29,23 +29,37 @@ def blakeGenPass():
 	print('---NEWLINE---\n', pInput.hexdigest(), '\n---NEWLINE---\n', rPInput.hexdigest())
 	if pInput.hexdigest() != rPInput.hexdigest():
 		exit('Passwords do not match')
-	try:
-		open('potatoes.json', 'x')
-	except FileExistsError:
-		print('File already exists')
-	with open('potatoes.json', 'r+') as jf:
-		print(jf.read())
-		try:
-			print(jf.read())
-			print(type(jf.read()))
-			past = json.loads(jf.read())
-			print(past)
-			exit(0)
-		except json.decoder.JSONDecodeError:
-			print('No passwords saved yet, or corrupted file.')
-			json.dump([{
-				'password': rPInput.hexdigest(),
-				'salt': str(salt)
-			}], jf)
+	jsonWrite(rPInput, salt, uInput)
 
-blakeGenPass()
+
+def jsonWrite(password, salt, username):
+	from os import path
+	import json
+
+	if path.exists('potatoes.json'):
+		past = json.load(open('potatoes.json', 'r'))
+		print(past)
+		print(type(past))
+	else:
+		open('potatoes.json', 'x')
+		past = []
+	past.append({
+		'username': username,
+		'password': password.hexdigest(),
+		'salt': str(salt)
+	})
+	print(past)
+	json.dump(past, open('potatoes.json', 'w+'))
+
+
+def rmCombos():
+	import os
+
+	a0 = input('Are you sure you want to delete all username/password/salt combos? (Deletes potatoes.json) Type "YES" '
+												'for confirmation:\nInput: ')
+	if a0 != 'YES':
+		exit(0)
+	a1 = input(
+		'Are you absolutely sure you want to delete all username/password/salt combos? Type "YES" again:\nInput: ')
+	if a1 == 'YES':
+		os.remove('potatoes.json')
